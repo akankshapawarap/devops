@@ -1,0 +1,8 @@
+---
+- hosts: web1
+  become: true
+  tasks:
+    - name: to install multiple packages
+      apt:
+        name: ['tree' , 'nano']
+        state: present 

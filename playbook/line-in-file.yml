@@ -7,7 +7,7 @@
         path: /etc/apache2/ports.conf
         regexp: '^Listen'
         insertafter: '^#Listen'
-        line: Listen 90
+        line: Listen 80
 
     - name: restart apache
       service: 

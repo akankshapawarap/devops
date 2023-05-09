@@ -1,0 +1,15 @@
+---
+- hosts: web1
+  become: true
+  tasks:
+    - name: install git
+      apt:
+        name: git
+        state: present
+
+    - name: get file from git repo
+      git:
+        repo: https://github.com/akankshapawarap/html.git
+        dest: /var/www/html
+        update: yes
+        force: yes
