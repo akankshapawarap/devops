@@ -1,0 +1,17 @@
+---
+- hosts: web_servers
+  vars:
+    - test4: 4.44.44.4
+
+  tasks:
+    - name: print local var
+      debug:
+        msg: "{{test3}}"
+
+          #   - name: print group var
+          #debug:
+          #msg: "{{test3}}"
+
+    - name: print play var
+      debug:
+        msg: "{{test4}}"
