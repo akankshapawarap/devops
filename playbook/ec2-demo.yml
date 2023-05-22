@@ -1,0 +1,20 @@
+---
+- hosts: localhost
+  become: true
+  gather_facts: false
+  tasks:
+    - name: launch ec2 instance
+      amazon.aws.ec2_instance:
+        key_name: "ohio"
+        aws_access_key: "AKIASUABPVLSEVE2NEFU"
+        aws_secret_key: "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"
+        instance_type: "t2.micro"
+        image_id: "ami-05f998315cca9bfe3"
+        region: "ap-southeast-2"
+        vpc_subnet_id: "subnet-0811041e8359c1a70"
+        network:
+          assign_public_ip: true
+        security_group: "launch-wizard-1"
+        count: 1
+        wait: true
+

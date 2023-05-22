@@ -1,0 +1,106 @@
+---
+- hosts: localhost
+  become: true 
+  tasks:
+    - name: launch ec2 instance
+      amazon.aws.ec2_instance:
+        key_name: "ohio"
+        aws_access_key: "AKIASUABPVLSEVE2NEFU"
+        aws_secret_key: "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"
+        instance_type: "t2.micro"
+        image_id: "ami-05f998315cca9bfe3"
+        region: "ap-southeast-2"
+        vpc_subnet_id: "subnet-0811041e8359c1a70"
+        network:
+          assign_public_ip: yes 
+        security_group: "launch-wizard-1"
+        count: 1
+        tags:
+          count_tag: 
+          name: "automatic"
+          instance_tags:
+          name: "automatic"
+        wait: true
+      register: ec2
+
+    - name: Wait for SSH to come up
+      wait_for:
+        host: "{{ec2.instances[0].public_ip_address }}"
+        port: 22
+        delay: 60
+        timeout: 320
+      with_items: "{{ ec2.instances }}"
+
+    - debug:
+        var: ec2
+
+    - name: print ip
+      debug:
+        msg: "{{ ec2.instances[0].public_ip_address }}"
+
+    - name: add instance to host group
+      ansible.builtin.add_host: 
+        hostname: "{{ ec2.instances[0].public_ip_address }}"
+        groupname: web_servers
+      with_items: "{{ ec2.instances }}"
+
+    - debug:
+        msg: Remote IP is "{{ec2.instances[0].public_ip_address}}"
+      with_items: "{{ec2.instances}}"
+
+    - name: add instnce to inventory file
+      lineinfile:
+        path: /home/ubuntu/ansible-demo/hosts
+        insertafter: '^[web_servers]'
+        line: "ubuntu@{{ec2.instances[0].public_ip_address}}"
+      with_items: "{{ec2.instances}}"    
+
+    - pause:
+        prompt: waiting for 2 min
+        minutes: 1
+
+    - name: ssh into instance and install python
+      shell:
+        ssh -i ohio.pem ubuntu@{{ec2.instances[0].public_ip_address }}
+        sudo apt update -y && sudo apt install python3 -y
+      with_items: "{{ec2.instances}}"
+
+    - name: export my ssh key
+      shell:
+        cat ~/.ssh/id_rsa.pub | ssh -i ohio.pem ubuntu@{{ec2.instances[0].public_ip_address }} "cat >> ~/.ssh/authorized_keys"
+      become_user: ubuntu
+      delegate_to: localhost
+      with_items: "{{ec2.instances}}"
+
+    - name: refresh inventory
+      meta: refresh_inventory
+
+- name: configure instance
+  hosts: web_servers
+  become: true
+  gather_facts: true
+  tasks: 
+    - name: install apache
+      apt:
+        name: apache2
+        state: present
+
+    - name: start apache
+      service:
+        name: apache2
+        state: started
+
+    - name: install git
+      apt: 
+        name: git
+        state: present 
+
+    - name: deploy app
+      git:
+        repo: https://github.com/akankshapawarap/html.git
+        dest: /var/www/html
+        update: yes
+        force: yes
+
+
+
