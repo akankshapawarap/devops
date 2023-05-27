@@ -5,8 +5,8 @@
     - name: launch ec2 instance
       amazon.aws.ec2_instance:
         key_name: "ohio"
-        aws_access_key: "AKIASUABPVLSEVE2NEFU"
-        aws_secret_key: "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"
+        aws_access_key: ""
+        aws_secret_key: ""
         instance_type: "t2.micro"
         image_id: "ami-05f998315cca9bfe3"
         region: "ap-southeast-2"
